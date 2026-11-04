@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+insta_env/
+env/
+ENV/
+
+# Secrets and Session Tokens (DO NOT COMMIT SENSITIVE DATA)
+*.env
+*.env.local
+insta_session.json
+*.session
+instagram_posted_log.json
+gdrive_sync_state.json
+
+# Media files (Large binaries)
+*.mp4
+*.webm
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+*.m4a
+
+# Temporary render artifacts
+/tmp/
+mask_*.png
+overlay_*.png
+*.png_pipe

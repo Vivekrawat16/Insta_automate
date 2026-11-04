@@ -1,0 +1,24 @@
+{
+  "builtin": "schedule",
+  "args": [
+    "CRON_TZ=Asia/Kolkata 30 13,20 * * *",
+    "agentapi",
+    "new-conversation",
+    "--",
+    "Run the Instagram reel posting script /home/vivek/nifi/insta_env/bin/python /home/vivek/nifi/post_next_reel_to_insta.py to pick the next pending reel from Google Drive, post it to Instagram, and move it to the Uploaded_Archive folder. Verify the upload succeeded."
+  ],
+  "restart_policy": "always",
+  "display_name": "Instagram 2 Reels Daily Poster",
+  "description": "Runs twice daily at 1:30 PM and 8:30 PM (Asia/Kolkata) to automatically publish the next pending reel from Google Drive to Instagram, and move the posted reel into the Uploaded_Archive folder.",
+  "agent_permissions": {
+    "workspace_uris": [
+      "file:///home/vivek/nifi"
+    ],
+    "access_grants": [
+      "command(/home/vivek/nifi/insta_env/bin/python /home/vivek/nifi/post_next_reel_to_insta.py)",
+      "command(gdrive readonly ls)",
+      "command(gdrive readonly download)",
+      "command(gdrive mutate mv)"
+    ]
+  }
+}

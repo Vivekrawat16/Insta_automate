@@ -1,0 +1,23 @@
+{
+  "builtin": "schedule",
+  "args": [
+    "CRON_TZ=Asia/Kolkata 0 12 * * *",
+    "agentapi",
+    "new-conversation",
+    "--",
+    "Generate 10 fresh, viral, dark humor & relatable memes inspired by trending Indian topics from Reddit (subreddits like r/IndianDankMemes, r/indiameme, r/developersIndia). Format each meme into a structured JSON spec matching the template rules in /home/vivek/nifi/meme_build/ (using available character videos: cillian_raw.mp4, bale_raw.mp4, ryan_raw.mp4, homelander.mp4, baburao_raw.mp4, nana_raw.mp4, sanjay_raw.mp4, rajpal_raw.mp4, akshay_raw.mp4, paresh_raw.mp4, vijay_raw.mp4, oppenheimer_raw.mp4). Run python3 /home/vivek/nifi/meme_build/render_and_upload_batch.py <spec_file.json> to render all 10 reels in 1080x1920 vertical format and upload them directly to Google Drive folder 15tEG1buRhHi8g4lkv98KMJC_-LHupuvV. Verify that all 10 reels are uploaded successfully to Drive."
+  ],
+  "restart_policy": "always",
+  "display_name": "Daily 10 Meme Reels Generator",
+  "description": "Runs daily at 12:00 PM (Asia/Kolkata) to research trending Reddit meme concepts, render 10 vertical video meme reels, and upload them to Google Drive.",
+  "agent_permissions": {
+    "workspace_uris": [
+      "file:///home/vivek/nifi"
+    ],
+    "access_grants": [
+      "command(python3 /home/vivek/nifi/meme_build/render_and_upload_batch.py)",
+      "command(gdrive readonly ls)",
+      "command(gdrive mutate upload)"
+    ]
+  }
+}

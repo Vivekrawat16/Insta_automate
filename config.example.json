@@ -1,0 +1,18 @@
+{
+  "google_drive": {
+    "memes_folder_id": "15tEG1buRhHi8g4lkv98KMJC_-LHupuvV",
+    "archive_folder_id": "19oTHwlAxucPomUfLXAOanyDyzTMeshya",
+    "brain_backup_folder_id": "1_tRxpwebz8-MI7-vX-cacYXM5-pJsqwD",
+    "recent_chats_folder_id": "1DefH92_jXbPYBkHaV2IEOACTcDzQI4Kh",
+    "brain_zip_file_id": "1r4k-xlRrKdEW7trEFTad360rjN_rOtXU",
+    "index_file_id": "1DZDVJH_Qiiq_BZs_2P0gT7JXOumQJKnF"
+  },
+  "instagram": {
+    "username": "coool_verse_",
+    "session_file": "insta_session.json",
+    "posting_schedule": [
+      "13:30",
+      "20:30"
+    ]
+  }
+}

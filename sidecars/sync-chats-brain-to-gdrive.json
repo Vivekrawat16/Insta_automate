@@ -1,0 +1,21 @@
+{
+  "builtin":  "schedule",
+  "restart_policy":  "always",
+  "args":  [
+    "CRON_TZ=Asia/Kolkata 0 11 * * *",
+    "agentapi",
+    "new-conversation",
+    "--",
+    "Run the sync script python3 /home/vivek/.gemini/antigravity/scripts/sync_brain_chats_to_gdrive.py to sync any new or updated chats, conversation transcripts, and the Antigravity brain archive to Google Drive. Check the command output and verify the sync succeeded."
+  ],
+  "description":  "Every hour at minute 30 (Asia/Kolkata), syncs new Antigravity chats, brain transcripts, and backups to Google Drive.",
+  "display_name":  "Sync Chats & Brain to Google Drive",
+  "agent_permissions":  {
+    "access_grants":  [
+      "command(python3 /home/vivek/.gemini/antigravity/scripts/sync_brain_chats_to_gdrive.py)",
+      "command(gdrive readonly ls)",
+      "command(gdrive mutate upload)",
+      "command(gdrive mutate update)"
+    ]
+  }
+}

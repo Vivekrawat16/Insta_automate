@@ -1,0 +1,152 @@
+[
+  {
+    "slug": "desi_ghee_diet",
+    "raw_video": "paresh_raw.mp4",
+    "aspect": "4:3",
+    "duration": 7.0,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Spent 2 hours researching high protein",
+      "caloric deficit macro balance...",
+      "mummy mixed 4 spoons of desi ghee into dal",
+      "saying 'bahut kamzor ho gaya hai'"
+    ]
+  },
+  {
+    "slug": "weekend_manager_sync",
+    "raw_video": "cillian_raw.mp4",
+    "aspect": "16:9",
+    "duration": 6.5,
+    "card_h": 350,
+    "font_size": 34,
+    "line_spacing": 54,
+    "lines": [
+      "Manager on Friday 6 PM: 'Enjoy weekend",
+      "and disconnect completely guys'...",
+      "Same manager on Saturday 8 AM: 'Can you",
+      "jump on a quick critical sync call?'"
+    ]
+  },
+  {
+    "slug": "linkedin_influencer_ant",
+    "raw_video": "ryan_raw.mp4",
+    "aspect": "16:9",
+    "duration": 6.5,
+    "card_h": 350,
+    "font_size": 34,
+    "line_spacing": 54,
+    "lines": [
+      "'Today I saw an ant carry a breadcrumb",
+      "for 10 meters in the rain...'",
+      "Here are 7 B2B SaaS leadership lessons",
+      "it taught me about compounding hustle"
+    ]
+  },
+  {
+    "slug": "sip_smallcap_crash",
+    "raw_video": "baburao_raw.mp4",
+    "aspect": "16:9",
+    "duration": 7.2,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Started a ₹5,000 monthly SIP in high-risk",
+      "Small Cap fund for financial freedom...",
+      "Nifty dropped 500 points the exact minute",
+      "my monthly salary got auto-debited"
+    ]
+  },
+  {
+    "slug": "landlord_security_deposit",
+    "raw_video": "nana_raw.mp4",
+    "aspect": "4:3",
+    "duration": 7.5,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Bangalore landlord deducting ₹40,000 from",
+      "my security deposit for 'air wear-and-tear'",
+      "and 'negative spiritual vibes' after I lived",
+      "in the room for only 10 months"
+    ]
+  },
+  {
+    "slug": "ai_replaces_devs",
+    "raw_video": "sanjay_raw.mp4",
+    "aspect": "4:3",
+    "duration": 7.0,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Told parents that learning coding guarantees",
+      "high salary job till retirement...",
+      "2 months into the job, manager replaced",
+      "our entire department with an AI tool"
+    ]
+  },
+  {
+    "slug": "blinkit_vs_life",
+    "raw_video": "akshay_raw.mp4",
+    "aspect": "16:9",
+    "duration": 7.5,
+    "card_h": 350,
+    "font_size": 34,
+    "line_spacing": 54,
+    "lines": [
+      "Blinkit can deliver 3 lemons and ice cubes",
+      "to my doorstep in 7 minutes...",
+      "but takes me 4 hours of staring at the wall",
+      "just to reply to one simple text message"
+    ]
+  },
+  {
+    "slug": "startup_pitch_relatives",
+    "raw_video": "bale_raw.mp4",
+    "aspect": "16:9",
+    "duration": 8.0,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Relatives asking: 'Beta company me kaam",
+      "kya karte ho exact batao?'...",
+      "Me trying to explain I am Chief Growth",
+      "Hacker at a pre-revenue stealth startup"
+    ]
+  },
+  {
+    "slug": "doctor_chemist_handwriting",
+    "raw_video": "rajpal_raw.mp4",
+    "aspect": "4:3",
+    "duration": 6.0,
+    "card_h": 350,
+    "font_size": 35,
+    "line_spacing": 54,
+    "lines": [
+      "Doctor wrote what looks like an ancient",
+      "hieroglyphic curse on the prescription...",
+      "Local chemist bhaiya handed me 3 strips of",
+      "Paracetamol in 2 seconds without looking"
+    ]
+  },
+  {
+    "slug": "3am_motivation_trap",
+    "raw_video": "homelander.mp4",
+    "aspect": "16:9",
+    "duration": 7.0,
+    "card_h": 350,
+    "font_size": 34,
+    "line_spacing": 54,
+    "lines": [
+      "3 AM: 'Kal 5 baje uthunga, 10km run, Rust",
+      "language, aur SaaS company khadi karunga'...",
+      "8:30 AM: Snoozing 12th alarm while lying",
+      "under blanket scrolling meme reels"
+    ]
+  }
+]
