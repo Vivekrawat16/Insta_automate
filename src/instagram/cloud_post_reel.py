@@ -69,7 +69,16 @@ CAPTION_TEMPLATES = {
     "prod_hotfix_diwali_oncall": "Diwali evening, patakhe phoot rahe hain aur production server 500 error throw kar raha hai 💀😭 PagerDuty ringtone trauma.\n\n",
 }
 
+PREME_HASHTAGS = "#preme #kickstreamer #streamer #twitchclips #irlstream #viralmoments #clipping #fyp #explorepage"
+
 def generate_caption(filename):
+    if filename.startswith("preme_reel_"):
+        return (
+            "Wait till the end... This stream moment was wild 💀😭\n\n"
+            "Tag a friend who needs to see this! 👇\n\n"
+            f"{PREME_HASHTAGS}"
+        )
+
     slug = ""
     m = re.match(r'reel_\d+_(.*?)\.mp4$', filename)
     if m:

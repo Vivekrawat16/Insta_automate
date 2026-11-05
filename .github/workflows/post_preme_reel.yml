@@ -1,0 +1,57 @@
+name: "Post Preme Campaign Reel"
+
+on:
+  # Automated Schedule targeting US Peak Evening Viewing Times:
+  # 7:30 PM EST (00:30 UTC / 6:00 AM IST) & 10:30 PM EST (03:30 UTC / 9:00 AM IST)
+  schedule:
+    - cron: '30 0,3 * * *'
+
+  # Manual on-demand trigger via GitHub UI
+  workflow_dispatch:
+    inputs:
+      share_to_story:
+        description: 'Auto-share published reel to Instagram Story? (true/false)'
+        required: true
+        default: 'false'
+
+concurrency:
+  group: preme-instagram-upload-queue
+  cancel-in-progress: false
+
+jobs:
+  upload-preme-reel:
+    name: "Upload Preme Reel to Instagram (@coool_verse_)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Cloud Reel Poster
+        env:
+          # Uses PREME_INSTA_SESSION_JSON if configured, otherwise falls back to INSTA_SESSION_JSON
+          INSTA_SESSION_JSON: ${{ secrets.PREME_INSTA_SESSION_JSON != '' && secrets.PREME_INSTA_SESSION_JSON || secrets.INSTA_SESSION_JSON }}
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          GDRIVE_FOLDER_ID: ${{ secrets.PREME_GDRIVE_FOLDER_ID != '' && secrets.PREME_GDRIVE_FOLDER_ID || '1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr' }}
+          GDRIVE_ARCHIVE_ID: ${{ secrets.PREME_GDRIVE_ARCHIVE_ID != '' && secrets.PREME_GDRIVE_ARCHIVE_ID || '1E3xbmMxuMykWskFagbQ155mn5Dq1QWfG' }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+          SHARE_TO_STORY: ${{ github.event.inputs.share_to_story || 'false' }}
+        run: |
+          python src/instagram/cloud_post_reel.py
