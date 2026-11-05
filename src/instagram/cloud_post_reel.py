@@ -17,7 +17,9 @@ import re
 import time
 import random
 import subprocess
+import urllib.parse
 from pathlib import Path
+import requests
 
 # Google Drive API
 from google.oauth2 import service_account
@@ -191,6 +193,36 @@ def init_instagram_client():
 
     return cl
 
+def send_whatsapp_alert(reel_num, filename, insta_url, remaining_count=None):
+    """Sends free WhatsApp alert via CallMeBot gateway if configured."""
+    phone = os.getenv("WHATSAPP_PHONE", "").strip()
+    apikey = os.getenv("WHATSAPP_APIKEY", "").strip()
+
+    if not phone or not apikey:
+        print("ℹ️ WhatsApp alerts disabled (WHATSAPP_PHONE or WHATSAPP_APIKEY secret not configured).")
+        return
+
+    # Clean display topic
+    slug = filename.replace(".mp4", "")
+    m = re.match(r'reel_\d+_(.*)', slug)
+    topic = m.group(1).replace('_', ' ').title() if m else slug
+
+    msg = f"🎉 *Reel #{reel_num} Live on Instagram!*\n\n🎬 *Account:* @vformemes\n📌 *Topic:* {topic}\n🔗 *Link:* {insta_url}"
+    if remaining_count is not None:
+        msg += f"\n📦 *Queue Remaining:* {remaining_count} reels"
+
+    try:
+        encoded_text = urllib.parse.quote_plus(msg)
+        # CallMeBot WhatsApp API Gateway
+        url = f"https://api.callmebot.com/whatsapp.php?phone={phone}&text={encoded_text}&apikey={apikey}"
+        resp = requests.get(url, timeout=12)
+        if resp.status_code == 200:
+            print("📱 WhatsApp alert sent successfully!")
+        else:
+            print(f"⚠️ WhatsApp alert response: HTTP {resp.status_code}")
+    except Exception as e:
+        print(f"⚠️ Failed to send WhatsApp alert: {e}")
+
 def main():
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Starting Cloud Instagram Reel Poster...")
     os.makedirs(TMP_DIR, exist_ok=True)
@@ -274,7 +306,11 @@ def main():
     print(f"\nArchiving reel in Google Drive...")
     move_drive_file(drive_service, reel_id)
 
-    # 10. Clean up temporary files
+    # 10. Send Free WhatsApp Alert (if secrets configured)
+    remaining_count = max(0, len(pending) - 1)
+    send_whatsapp_alert(reel_num, reel_name, insta_url, remaining_count=remaining_count)
+
+    # 11. Clean up temporary files
     for p in (local_path, thumb_path):
         try:
             if os.path.exists(p):

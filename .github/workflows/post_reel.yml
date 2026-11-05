@@ -55,5 +55,7 @@ jobs:
           GDRIVE_ARCHIVE_ID: ${{ secrets.GDRIVE_ARCHIVE_ID != '' && secrets.GDRIVE_ARCHIVE_ID || '19oTHwlAxucPomUfLXAOanyDyzTMeshya' }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
           SHARE_TO_STORY: ${{ github.event.inputs.share_to_story || 'true' }}
+          WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
+          WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
         run: |
           python src/instagram/cloud_post_reel.py
