@@ -4,9 +4,8 @@ Cloud Instagram Reel Poster
 Runs headless on GitHub Actions (or locally) to:
 1. Fetch the next pending reel from Google Drive via Service Account
 2. Generate thumbnail and caption
-3. Upload to Instagram via instagrapi
-4. Share reel to Story (optional)
-5. Move reel to Uploaded_Archive folder in Google Drive
+3. Upload to Instagram via instagrapi (Reel feed upload only)
+4. Move reel to Uploaded_Archive folder in Google Drive
 """
 
 import os
@@ -36,7 +35,6 @@ GDRIVE_SA_KEY = os.getenv("GDRIVE_SA_KEY", "")
 
 INSTA_SESSION_JSON = os.getenv("INSTA_SESSION_JSON", "")
 PROXY_URL = os.getenv("PROXY_URL", "").strip()
-SHARE_TO_STORY = os.getenv("SHARE_TO_STORY", "true").lower() in ("true", "1", "yes")
 
 TMP_DIR = "/tmp/insta_cloud_upload"
 
@@ -299,19 +297,7 @@ def main():
     print(f"Instagram Post URL: {insta_url}")
     print(f"Media PK: {media.pk}")
 
-    # 8. Share to Story (if enabled)
-    if SHARE_TO_STORY:
-        story_delay = random.randint(6, 12)
-        print(f"\nWaiting {story_delay}s before sharing to Instagram Story...")
-        time.sleep(story_delay)
-        try:
-            print("Sharing Reel to Story...")
-            cl.media_share_to_story(media_id=str(media.id))
-            print("🎉 Successfully reshared Reel to Instagram Story!")
-        except Exception as e:
-            print(f"⚠️ Note: Story share failed/skipped (Reel upload is unaffected): {e}")
-
-    # 9. Move Reel to Uploaded_Archive in Google Drive
+    # 8. Move Reel to Uploaded_Archive in Google Drive
     print(f"\nArchiving reel in Google Drive...")
     move_drive_file(drive_service, reel_id)
 

@@ -8,11 +8,6 @@ on:
 
   # Manual on-demand trigger via GitHub UI
   workflow_dispatch:
-    inputs:
-      share_to_story:
-        description: 'Auto-share published reel to Instagram Story? (true/false)'
-        required: true
-        default: 'false'
 
 concurrency:
   group: preme-instagram-upload-queue
@@ -52,6 +47,5 @@ jobs:
           GDRIVE_FOLDER_ID: ${{ secrets.PREME_GDRIVE_FOLDER_ID != '' && secrets.PREME_GDRIVE_FOLDER_ID || '1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr' }}
           GDRIVE_ARCHIVE_ID: ${{ secrets.PREME_GDRIVE_ARCHIVE_ID != '' && secrets.PREME_GDRIVE_ARCHIVE_ID || '1E3xbmMxuMykWskFagbQ155mn5Dq1QWfG' }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
-          SHARE_TO_STORY: ${{ github.event.inputs.share_to_story || 'false' }}
         run: |
           python src/instagram/cloud_post_reel.py

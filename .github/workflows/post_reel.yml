@@ -10,11 +10,6 @@ on:
 
   # Manual on-demand trigger via GitHub UI
   workflow_dispatch:
-    inputs:
-      share_to_story:
-        description: 'Auto-share published reel to Instagram Story? (true/false)'
-        required: true
-        default: 'true'
 
 # Ensure only one reel upload runs at a time to prevent duplicate posts
 concurrency:
@@ -54,7 +49,6 @@ jobs:
           GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID != '' && secrets.GDRIVE_FOLDER_ID || '15tEG1buRhHi8g4lkv98KMJC_-LHupuvV' }}
           GDRIVE_ARCHIVE_ID: ${{ secrets.GDRIVE_ARCHIVE_ID != '' && secrets.GDRIVE_ARCHIVE_ID || '19oTHwlAxucPomUfLXAOanyDyzTMeshya' }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
-          SHARE_TO_STORY: ${{ github.event.inputs.share_to_story || 'true' }}
           WHATSAPP_PHONE: ${{ secrets.WHATSAPP_PHONE }}
           WHATSAPP_APIKEY: ${{ secrets.WHATSAPP_APIKEY }}
         run: |
