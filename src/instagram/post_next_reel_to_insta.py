@@ -21,6 +21,11 @@ LOG_FILE = os.path.join(BASE_DIR, "instagram_posted_log.json")
 HASHTAGS = "#relatable #desimemes #corporatehumor #indianmemes #memesdaily #dankmemes #trendingreels #explorepage #viralmemes #laughter #adultingishard #comedy #memestagram"
 
 CAPTION_TEMPLATES = {
+    "exam_panic": "Exam in 5 hours, haven't opened the book, 5 units syllabus aur haath me thandi chai 💀😭 Accepting god's plan at this point.\n\nTag that backbencher friend who survives on one-night study! 😂\n\n",
+    "corporate_spine": "L-shaped posture at 4 PM vs Ergonomic chair promises 💀😭 Spine has officially left the chat.\n\n",
+    "bumble_trauma": "Dating apps in 2026: Ghosting after 3 days of deep soul connection 💀😭 Modern romance.\n\n",
+    "hr_pizza_party": "Appraisal hike: 0.5% budget constraint. Meanwhile HR: Free pizza party guys! 💀😭 Corporate solutions.\n\n",
+    "zepto_free_gift": "Order ₹199 ka free gift lene ke liye ₹1500 ki cart bana li 💀😭 Peak financial intellect.\n\n",
     "desi_ghee_diet": "Calorie count planning vs Mummy ka unconditional desi ghee 💀😭 Baat khatam.\n\nTag that gym bro who can relate! 😂\n\n",
     "weekend_manager_sync": "Friday 6 PM ka 'Enjoy Weekend' vs Saturday 8 AM ka 'Quick Sync' 💀😭\n\nCorporate majdoori at its finest.\n\n",
     "linkedin_influencer_ant": "Ant hustle mentality se multi-million dollar lessons 💀😭 LinkedIn influencers need to be stopped.\n\n",
