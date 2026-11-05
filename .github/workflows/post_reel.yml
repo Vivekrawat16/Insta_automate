@@ -1,12 +1,10 @@
 name: "Post Next Instagram Reel"
 
 on:
-  # Automated 4 Reels Daily Schedule (UTC times converted from IST)
+  # Automated 5 Reels Daily Schedule (IST: 10:00 AM, 2:00 PM, 5:00 PM, 8:00 PM, 11:00 PM)
+  # Converted to UTC (IST - 5:30): 04:30, 08:30, 11:30, 14:30, 17:30 UTC
   schedule:
-    # 11:00 AM IST (05:30 UTC) & 2:00 PM IST (08:30 UTC)
-    - cron: '30 5,8 * * *'
-    # 6:30 PM IST (13:00 UTC) & 9:30 PM IST (16:00 UTC)
-    - cron: '0 13,16 * * *'
+    - cron: '30 4,8,11,14,17 * * *'
 
   # Manual on-demand trigger via GitHub UI
   workflow_dispatch:
