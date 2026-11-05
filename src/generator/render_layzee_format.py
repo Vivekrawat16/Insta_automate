@@ -1,16 +1,29 @@
 #!/usr/bin/env python3
+"""
+Centered Dark Theme Meme Reel Renderer (Option A)
+Renders viral 1080x1920 Instagram Reels with:
+- Pure black canvas
+- Eye-level optical center ratio (no empty bottom void)
+- Crisp bold white headline
+- 16:9 or 4:3 video centered vertically
+- Subtle @vformemes watermark
+"""
+
 import os
 import sys
 import subprocess
 from PIL import Image, ImageDraw, ImageFont
 
 FFMPEG = "/home/vivek/nifi/meme_build/ffmpeg"
+if not os.path.exists(FFMPEG):
+    FFMPEG = "ffmpeg"
+
 WORK_DIR = "/home/vivek/nifi/meme_build"
 FONT_PATH = os.path.join(WORK_DIR, "Montserrat-Bold.ttf")
 
 W, H = 1080, 1920
 
-def create_layzee_overlay(lines, watermark="@layzee_hub_", font_size=44, line_spacing=64, text_start_y=380, wm_y=1450):
+def create_dark_overlay(lines, watermark="@vformemes", font_size=42, line_spacing=62, text_start_y=520, wm_y=1328):
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
 
@@ -30,32 +43,32 @@ def create_layzee_overlay(lines, watermark="@layzee_hub_", font_size=44, line_sp
         wm_bbox = draw.textbbox((0, 0), watermark, font=wm_font)
         wm_w = wm_bbox[2] - wm_bbox[0]
         wm_x = (W - wm_w) // 2
-        draw.text((wm_x, wm_y), watermark, font=wm_font, fill=(170, 170, 170, 220))
+        draw.text((wm_x, wm_y), watermark, font=wm_font, fill=(160, 160, 160, 220))
 
     return overlay
 
-def render_layzee_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9", watermark="@layzee_hub_", ss_offset=0):
+def render_centered_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9", watermark="@vformemes", ss_offset=0):
     vid_w = 1080
     if aspect == "16:9":
-        vid_h = int(vid_w * 9 / 16) # 608
-        vid_y = 660
-        text_y = 420
-        wm_y = vid_y + vid_h + 60
+        vid_h = int(vid_w * 9 / 16) # 608px
+        vid_y = 680
+        text_y = 520
+        wm_y = vid_y + vid_h + 40   # 1328px
     else: # 4:3
-        vid_h = int(vid_w * 3 / 4) # 810
-        vid_y = 560
-        text_y = 350
-        wm_y = vid_y + vid_h + 50
+        vid_h = int(vid_w * 3 / 4) # 810px
+        vid_y = 600
+        text_y = 440
+        wm_y = vid_y + vid_h + 40   # 1450px
 
-    overlay_img = create_layzee_overlay(
+    overlay_img = create_dark_overlay(
         lines,
         watermark=watermark,
-        font_size=44,
-        line_spacing=64,
+        font_size=42,
+        line_spacing=62,
         text_start_y=text_y,
         wm_y=wm_y
     )
-    overlay_path = os.path.join(WORK_DIR, "layzee_overlay_tmp.png")
+    overlay_path = os.path.join(WORK_DIR, "centered_overlay_tmp.png")
     overlay_img.save(overlay_path)
 
     fade_start = max(0, duration - 1.2)
@@ -67,9 +80,7 @@ def render_layzee_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9",
         f"[0:a]atrim=0:{duration},afade=t=out:st={fade_start}:d=1.2[afinal]"
     )
 
-    cmd = [
-        FFMPEG, "-y"
-    ]
+    cmd = [FFMPEG, "-y"]
     if ss_offset > 0:
         cmd.extend(["-ss", str(ss_offset)])
     cmd.extend([
@@ -89,7 +100,7 @@ def render_layzee_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9",
         output_mp4
     ])
 
-    print(f"Rendering @layzee_hub_ style sample: {output_mp4} ...")
+    print(f"Rendering Centered Option A Reel: {output_mp4} ...")
     subprocess.run(cmd, check=True)
     print(f"Done rendering! Size: {os.path.getsize(output_mp4) / (1024*1024):.2f} MB")
 
@@ -100,7 +111,6 @@ def render_layzee_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9",
         "-ss", "00:00:02",
         "-i", output_mp4,
         "-vframes", "1",
-        "-q:v", "2",
         preview_frame
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print(f"Preview frame generated: {preview_frame}")
@@ -110,11 +120,15 @@ def render_layzee_reel(video_in, lines, output_mp4, duration=7.5, aspect="16:9",
     except Exception:
         pass
 
-if __name__ == '__main__':
-    video_input = os.path.join(WORK_DIR, "nana_raw.mp4")
-    sample_lines = [
-        "Class ki sabse topper ladki ne",
-        "bhi reject kar diya"
-    ]
-    out_file = "/home/vivek/nifi/sample_layzee_reel.mp4"
-    render_layzee_reel(video_input, sample_lines, out_file, duration=7.5, aspect="4:3", watermark="@layzee_hub_")
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        # Default test run
+        test_in = os.path.join(WORK_DIR, "bale_raw.mp4")
+        test_out = os.path.join(WORK_DIR, "sample_centered_option_a.mp4")
+        lines = [
+            "Me and bro on the last bench",
+            "jab class me ladki ne top kiya"
+        ]
+        render_centered_reel(test_in, lines, test_out, watermark="@vformemes")
+    else:
+        render_centered_reel(sys.argv[1], [sys.argv[2]], sys.argv[3])
