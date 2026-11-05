@@ -28,8 +28,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from instagrapi import Client
 
 # Configuration via Environment Variables with sensible defaults
-GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "15tEG1buRhHi8g4lkv98KMJC_-LHupuvV")
-GDRIVE_ARCHIVE_ID = os.getenv("GDRIVE_ARCHIVE_ID", "19oTHwlAxucPomUfLXAOanyDyzTMeshya")
+GDRIVE_FOLDER_ID = (os.getenv("GDRIVE_FOLDER_ID") or "15tEG1buRhHi8g4lkv98KMJC_-LHupuvV").strip()
+GDRIVE_ARCHIVE_ID = (os.getenv("GDRIVE_ARCHIVE_ID") or "19oTHwlAxucPomUfLXAOanyDyzTMeshya").strip()
 GDRIVE_SA_KEY = os.getenv("GDRIVE_SA_KEY", "")
 
 INSTA_SESSION_JSON = os.getenv("INSTA_SESSION_JSON", "")
@@ -102,11 +102,14 @@ def get_drive_service():
 
 def fetch_pending_reels(drive_service):
     """Lists and sorts pending reel MP4s from Google Drive queue folder."""
+    print(f"Scanning Google Drive queue folder: '{GDRIVE_FOLDER_ID}'...")
     query = f"'{GDRIVE_FOLDER_ID}' in parents and mimeType='video/mp4' and trashed=false"
     results = drive_service.files().list(
         q=query,
         pageSize=100,
-        fields="files(id, name, size, createdTime)"
+        fields="files(id, name, size, createdTime)",
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True
     ).execute()
 
     files = results.get("files", [])
@@ -127,7 +130,7 @@ def fetch_pending_reels(drive_service):
 
 def download_file_from_drive(drive_service, file_id, destination_path):
     """Downloads a file from Google Drive using streaming chunks."""
-    request = drive_service.files().get_media(fileId=file_id)
+    request = drive_service.files().get_media(fileId=file_id, supportsAllDrives=True)
     with io.FileIO(destination_path, "wb") as fh:
         downloader = MediaIoBaseDownload(fh, request, chunksize=1024 * 1024 * 2)
         done = False
@@ -146,6 +149,7 @@ def move_drive_file(drive_service, file_id):
             fileId=file_id,
             addParents=GDRIVE_ARCHIVE_ID,
             removeParents=GDRIVE_FOLDER_ID,
+            supportsAllDrives=True,
             fields="id, parents"
         ).execute()
         print(f"✅ Successfully moved reel {file_id} to Uploaded_Archive in Google Drive.")

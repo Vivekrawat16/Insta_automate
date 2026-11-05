@@ -49,8 +49,8 @@ jobs:
         env:
           INSTA_SESSION_JSON: ${{ secrets.INSTA_SESSION_JSON }}
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
-          GDRIVE_ARCHIVE_ID: ${{ secrets.GDRIVE_ARCHIVE_ID }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID != '' && secrets.GDRIVE_FOLDER_ID || '15tEG1buRhHi8g4lkv98KMJC_-LHupuvV' }}
+          GDRIVE_ARCHIVE_ID: ${{ secrets.GDRIVE_ARCHIVE_ID != '' && secrets.GDRIVE_ARCHIVE_ID || '19oTHwlAxucPomUfLXAOanyDyzTMeshya' }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
           SHARE_TO_STORY: ${{ github.event.inputs.share_to_story || 'true' }}
         run: |
