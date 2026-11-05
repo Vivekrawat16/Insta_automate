@@ -297,6 +297,24 @@ def main():
     print(f"Instagram Post URL: {insta_url}")
     print(f"Media PK: {media.pk}")
 
+    # 7b. If this is a Preme Campaign Reel, Record to Google Sheet Tracker
+    if "preme" in reel_name.lower() or GDRIVE_FOLDER_ID == "1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr":
+        try:
+            try:
+                from src.preme.sheets_tracker import record_posted_reel_to_sheet
+            except ImportError:
+                from sheets_tracker import record_posted_reel_to_sheet
+
+            record_posted_reel_to_sheet(
+                reel_url=insta_url,
+                hook_title=caption.split('\n')[0][:80] if caption else reel_name,
+                duration=14.0,
+                media_pk=str(media.pk),
+                status="TRACKING"
+            )
+        except Exception as se:
+            print(f"⚠️ Warning: Could not log Preme reel to Google Sheet: {se}")
+
     # 8. Move Reel to Uploaded_Archive in Google Drive
     print(f"\nArchiving reel in Google Drive...")
     move_drive_file(drive_service, reel_id)

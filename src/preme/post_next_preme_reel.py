@@ -127,6 +127,21 @@ def post_next_reel():
                 df.write(f"[{time.strftime('%Y-%m-%d %H:%M')}] {target.get('hook_line1')} - {reel_url}\n")
             print(f"📄 Saved link to {desktop_file}")
 
+        # Record to Google Sheet Tracker
+        try:
+            from src.preme.sheets_tracker import record_posted_reel_to_sheet
+            hook_full = f"{target.get('hook_line1', '')} {target.get('hook_line2', '')}".strip()
+            record_posted_reel_to_sheet(
+                reel_url=reel_url,
+                hook_title=hook_full,
+                twitch_url=target.get("original_url", ""),
+                duration=target.get("duration", 14.0),
+                media_pk=str(media.pk),
+                status="TRACKING"
+            )
+        except Exception as se:
+            print(f"⚠️ Warning: Could not log to Google Sheet: {se}")
+
         return reel_url
 
     except Exception as e:
