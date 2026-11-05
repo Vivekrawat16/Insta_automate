@@ -1,10 +1,11 @@
 name: "Post Preme Campaign Reel"
 
 on:
-  # Automated Schedule targeting US Peak Evening Viewing Times:
-  # 7:30 PM EST (00:30 UTC / 6:00 AM IST) & 10:30 PM EST (03:30 UTC / 9:00 AM IST)
+  # Automated Schedule: Every 3 hours (8 reels per day)
+  # Times in UTC: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC
+  # (IST: 05:30, 08:30, 11:30, 14:30, 17:30, 20:30, 23:30, 02:30)
   schedule:
-    - cron: '30 0,3 * * *'
+    - cron: '0 */3 * * *'
 
   # Manual on-demand trigger via GitHub UI
   workflow_dispatch:
