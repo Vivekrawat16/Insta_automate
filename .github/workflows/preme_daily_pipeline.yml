@@ -1,0 +1,52 @@
+name: "Preme Daily Clipping & Render Pipeline"
+
+on:
+  # Daily at 10:30 AM IST (05:00 UTC)
+  schedule:
+    - cron: '0 5 * * *'
+
+  # Manual on-demand trigger via GitHub UI
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: "Number of Preme clips to process"
+        required: false
+        default: "3"
+
+concurrency:
+  group: preme-clipping-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-preme-pipeline:
+    name: "Scrape Clips, Render 1080x1920 (14s) & Upload to Drive"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Preme Pipeline
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          PREME_GDRIVE_FOLDER_ID: ${{ secrets.PREME_GDRIVE_FOLDER_ID != '' && secrets.PREME_GDRIVE_FOLDER_ID || '1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr' }}
+        run: |
+          COUNT="${{ github.event.inputs.batch_size || '3' }}"
+          python src/preme/pipeline.py "$COUNT"

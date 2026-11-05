@@ -1,0 +1,53 @@
+name: "@vformemes Topic Clustering Feedback Loop"
+
+on:
+  # Runs every 2 days at 1:30 PM IST (08:00 UTC)
+  schedule:
+    - cron: '0 8 */2 * *'
+
+  # Manual on-demand trigger via GitHub UI
+  workflow_dispatch:
+    inputs:
+      num_reels:
+        description: "Number of clustered spin-off reels to generate"
+        required: false
+        default: "3"
+
+concurrency:
+  group: meme-cluster-loop
+  cancel-in-progress: false
+
+jobs:
+  run-cluster-loop:
+    name: "Audit Reels & Generate Spin-offs to Drive Queue"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Topic Clustering Feedback Loop
+        env:
+          INSTA_SESSION_JSON: ${{ secrets.INSTA_SESSION_JSON }}
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID != '' && secrets.GDRIVE_FOLDER_ID || '15tEG1buRhHi8g4lkv98KMJC_-LHupuvV' }}
+        run: |
+          COUNT="${{ github.event.inputs.num_reels || '3' }}"
+          python src/generator/cluster_pipeline.py "$COUNT"

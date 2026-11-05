@@ -28,6 +28,9 @@ gdrive_sync_state.json
 *.wav
 *.m4a
 
+# Allow lightweight template clips for cloud generation
+!src/generator/assets/clips/*.mp4
+
 # Temporary render artifacts
 /tmp/
 mask_*.png
