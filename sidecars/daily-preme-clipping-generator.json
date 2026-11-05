@@ -1,0 +1,24 @@
+{
+  "builtin": "schedule",
+  "args": [
+    "CRON_TZ=Asia/Kolkata 0 11 * * *",
+    "agentapi",
+    "new-conversation",
+    "--",
+    "Run the daily Preme clipping automation to discover trending clips from Preme's streams, generate high-retention viral 10-15s hooks, render 1080x1920 vertical reels with official Preme overlay, and upload them to Google Drive queue folder (1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr). Run: python3 /home/vivek/preme_clipping/pipeline.py 3 and verify that 3 punchy 10-15s reels are rendered and queued in Drive."
+  ],
+  "restart_policy": "always",
+  "display_name": "Daily Preme Viral Clipping Generator",
+  "description": "Runs daily at 11:00 AM (Asia/Kolkata) to fetch top viral stream clips from Preme, craft punchy 10-15s hooks, render 1080x1920 Reels with official branding, and queue them in Google Drive.",
+  "agent_permissions": {
+    "workspace_uris": [
+      "file:///home/vivek/preme_clipping"
+    ],
+    "access_grants": [
+      "command(python3 /home/vivek/preme_clipping/pipeline.py 3)",
+      "command(gdrive readonly ls)",
+      "command(gdrive mutate upload)",
+      "command(gdrive mutate update)"
+    ]
+  }
+}
