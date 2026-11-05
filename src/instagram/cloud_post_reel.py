@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+"""
+Cloud Instagram Reel Poster
+Runs headless on GitHub Actions (or locally) to:
+1. Fetch the next pending reel from Google Drive via Service Account
+2. Generate thumbnail and caption
+3. Upload to Instagram via instagrapi
+4. Share reel to Story (optional)
+5. Move reel to Uploaded_Archive folder in Google Drive
+"""
+
+import os
+import sys
+import io
+import json
+import re
+import time
+import random
+import subprocess
+from pathlib import Path
+
+# Google Drive API
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+
+# Instagram API
+from instagrapi import Client
+
+# Configuration via Environment Variables with sensible defaults
+GDRIVE_FOLDER_ID = os.getenv("GDRIVE_FOLDER_ID", "15tEG1buRhHi8g4lkv98KMJC_-LHupuvV")
+GDRIVE_ARCHIVE_ID = os.getenv("GDRIVE_ARCHIVE_ID", "19oTHwlAxucPomUfLXAOanyDyzTMeshya")
+GDRIVE_SA_KEY = os.getenv("GDRIVE_SA_KEY", "")
+
+INSTA_SESSION_JSON = os.getenv("INSTA_SESSION_JSON", "")
+PROXY_URL = os.getenv("PROXY_URL", "").strip()
+SHARE_TO_STORY = os.getenv("SHARE_TO_STORY", "true").lower() in ("true", "1", "yes")
+
+TMP_DIR = "/tmp/insta_cloud_upload"
+
+HASHTAGS = "#relatable #desimemes #corporatehumor #indianmemes #memesdaily #dankmemes #trendingreels #explorepage #viralmemes #laughter #adultingishard #comedy #memestagram"
+
+CAPTION_TEMPLATES = {
+    "exam_panic": "Exam in 5 hours, haven't opened the book, 5 units syllabus aur haath me thandi chai 💀😭 Accepting god's plan at this point.\n\nTag that backbencher friend who survives on one-night study! 😂\n\n",
+    "corporate_spine": "L-shaped posture at 4 PM vs Ergonomic chair promises 💀😭 Spine has officially left the chat.\n\n",
+    "bumble_trauma": "Dating apps in 2026: Ghosting after 3 days of deep soul connection 💀😭 Modern romance.\n\n",
+    "hr_pizza_party": "Appraisal hike: 0.5% budget constraint. Meanwhile HR: Free pizza party guys! 💀😭 Corporate solutions.\n\n",
+    "zepto_free_gift": "Order ₹199 ka free gift lene ke liye ₹1500 ki cart bana li 💀😭 Peak financial intellect.\n\n",
+    "desi_ghee_diet": "Calorie count planning vs Mummy ka unconditional desi ghee 💀😭 Baat khatam.\n\nTag that gym bro who can relate! 😂\n\n",
+    "weekend_manager_sync": "Friday 6 PM ka 'Enjoy Weekend' vs Saturday 8 AM ka 'Quick Sync' 💀😭\n\nCorporate majdoori at its finest.\n\n",
+    "linkedin_influencer_ant": "Ant hustle mentality se multi-million dollar lessons 💀😭 LinkedIn influencers need to be stopped.\n\n",
+    "sip_smallcap_crash": "Small Cap SIP wealth creation vs Nifty 500-point dip 💀😭 Timing is everything.\n\n",
+    "landlord_security_deposit": "Air wear-and-tear aur negative vibe deduction 💀😭 Bangalore landlord supremacy.\n\n",
+    "ai_replaces_devs": "Coding seekho beta scope hai 💀😭 2 mahine baad intern + AI ne replace kar diya.\n\n",
+    "blinkit_vs_life": "Blinkit 7 min me aa jata hai, par 1 text ka reply karne me 4 ghante 💀😭 Overthinking peak.\n\n",
+    "startup_pitch_relatives": "Beta company me karte kya ho exact batao 💀😭 Chief Growth Hacker in stealth mode.\n\n",
+    "doctor_chemist_handwriting": "Doctor ki hieroglyphics vs Chemist bhaiya ka superpower 💀😭 Without looking 3 strips de diya.\n\n",
+    "3am_motivation_trap": "3 AM startup plans vs 8:30 AM snooze button 💀😭 Every single night story.\n\n",
+    "notice_period_prison": "3 months notice period: Staring at the ceiling while knowledge transfer file sits empty 💀😭 Jail release count chal raha hai.\n\n",
+    "royal_dansk_sewing_kit": "Butter cookies ka dabba khola, andar se dhaga aur sui nikli 💀😭 Universal Indian household betrayal.\n\n",
+    "seventy_hour_workweek": "70 hours workweek debate vs 2 ghante lunch break aur chai tapri discussions 💀😭 Balance maintain hona chahiye.\n\n",
+    "irctc_tatkal_bossfight": "10:00 AM Tatkal window open: Captcha solved in 0.2s, bank OTP arrives at 10:15 AM 💀😭 Waiting list 150.\n\n",
+    "gym_protein_contraband": "Protein powder ka dabba chupana vs Mummy asking ye dabba kiska hai 💀😭 Supplements explaining nightmare.\n\n",
+    "upi_chai_tapri_stare": "Server down on UPI: Bhaiya code scan kiya hai wait karo gpay circle ghoom raha hai 💀😭 Most awkward 30 seconds of life.\n\n",
+    "bangalore_orr_rto_traffic": "Silk Board se Marathahalli: Distance 8 km, Travel time 2 business days 💀😭 Fuel gauge dropping, hope leaving body.\n\n",
+    "shaadi_fufaji_critique": "Gulab jamun garam nahi tha aur paneer hard tha 💀😭 Fufaji review on point.\n\n",
+    "prod_hotfix_diwali_oncall": "Diwali evening, patakhe phoot rahe hain aur production server 500 error throw kar raha hai 💀😭 PagerDuty ringtone trauma.\n\n",
+}
+
+def generate_caption(filename):
+    slug = ""
+    m = re.match(r'reel_\d+_(.*?)\.mp4$', filename)
+    if m:
+        slug = m.group(1)
+
+    intro = CAPTION_TEMPLATES.get(slug, "")
+    if not intro:
+        words = slug.replace('_', ' ').title()
+        intro = f"{words} 💀😭 Every single time.\n\n"
+
+    return f"{intro}{HASHTAGS}"
+
+def get_drive_service():
+    """Initializes Google Drive v3 API client using Service Account."""
+    if not GDRIVE_SA_KEY:
+        raise ValueError("GDRIVE_SA_KEY environment variable is missing! Provide the Google Service Account JSON.")
+
+    if os.path.exists(GDRIVE_SA_KEY):
+        with open(GDRIVE_SA_KEY, "r") as f:
+            sa_info = json.load(f)
+    else:
+        try:
+            sa_info = json.loads(GDRIVE_SA_KEY)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse GDRIVE_SA_KEY as JSON: {e}")
+
+    creds = service_account.Credentials.from_service_account_info(
+        sa_info,
+        scopes=["https://www.googleapis.com/auth/drive"]
+    )
+    return build("drive", "v3", credentials=creds)
+
+def fetch_pending_reels(drive_service):
+    """Lists and sorts pending reel MP4s from Google Drive queue folder."""
+    query = f"'{GDRIVE_FOLDER_ID}' in parents and mimeType='video/mp4' and trashed=false"
+    results = drive_service.files().list(
+        q=query,
+        pageSize=100,
+        fields="files(id, name, size, createdTime)"
+    ).execute()
+
+    files = results.get("files", [])
+    reels = []
+    for item in files:
+        name = item.get("name", "")
+        m = re.match(r'reel_(\d+)_.*\.mp4$', name)
+        if m:
+            reels.append({
+                "id": item.get("id"),
+                "name": name,
+                "num": int(m.group(1)),
+                "size": int(item.get("size", 0))
+            })
+
+    reels.sort(key=lambda x: x["num"])
+    return reels
+
+def download_file_from_drive(drive_service, file_id, destination_path):
+    """Downloads a file from Google Drive using streaming chunks."""
+    request = drive_service.files().get_media(fileId=file_id)
+    with io.FileIO(destination_path, "wb") as fh:
+        downloader = MediaIoBaseDownload(fh, request, chunksize=1024 * 1024 * 2)
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+            if status:
+                percent = int(status.progress() * 100)
+                sys.stdout.write(f"\rDownloading from Drive: {percent}%")
+                sys.stdout.flush()
+    print("\nDownload complete.")
+
+def move_drive_file(drive_service, file_id):
+    """Moves processed reel from queue folder to archive folder in Google Drive."""
+    try:
+        drive_service.files().update(
+            fileId=file_id,
+            addParents=GDRIVE_ARCHIVE_ID,
+            removeParents=GDRIVE_FOLDER_ID,
+            fields="id, parents"
+        ).execute()
+        print(f"✅ Successfully moved reel {file_id} to Uploaded_Archive in Google Drive.")
+        return True
+    except Exception as e:
+        print(f"⚠️ Warning: Could not move file in Drive: {e}", file=sys.stderr)
+        return False
+
+def init_instagram_client():
+    """Initializes instagrapi Client with session settings and optional proxy."""
+    if not INSTA_SESSION_JSON:
+        raise ValueError("INSTA_SESSION_JSON environment variable is missing! Provide the Instagram session JSON.")
+
+    cl = Client()
+    cl.delay_range = [2, 5]
+
+    if PROXY_URL:
+        print(f"🌐 Setting proxy: {PROXY_URL}")
+        cl.set_proxy(PROXY_URL)
+
+    session_path = os.path.join(TMP_DIR, "session_active.json")
+    if os.path.exists(INSTA_SESSION_JSON):
+        cl.load_settings(INSTA_SESSION_JSON)
+    else:
+        try:
+            session_data = json.loads(INSTA_SESSION_JSON)
+            with open(session_path, "w") as f:
+                json.dump(session_data, f)
+            cl.load_settings(session_path)
+        except Exception as e:
+            raise ValueError(f"Failed to load INSTA_SESSION_JSON: {e}")
+
+    # Verify session validity
+    try:
+        user_info = cl.account_info()
+        print(f"✅ Authenticated as Instagram User: @{user_info.username} (PK: {user_info.pk})")
+    except Exception as e:
+        raise RuntimeError(f"Instagram session authentication failed: {e}")
+
+    return cl
+
+def main():
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Starting Cloud Instagram Reel Poster...")
+    os.makedirs(TMP_DIR, exist_ok=True)
+
+    # 1. Initialize Drive API
+    print("Connecting to Google Drive API via Service Account...")
+    drive_service = get_drive_service()
+
+    # 2. Get Pending Reels
+    pending = fetch_pending_reels(drive_service)
+    print(f"Found {len(pending)} pending reels in Google Drive queue.")
+
+    if not pending:
+        print("🎉 No pending reels in Google Drive queue! All reels have been posted.")
+        sys.exit(0)
+
+    next_reel = pending[0]
+    reel_id = next_reel["id"]
+    reel_name = next_reel["name"]
+    reel_num = next_reel["num"]
+
+    print(f"\n🎯 Next reel in queue: #{reel_num} -> {reel_name} (ID: {reel_id})")
+
+    # 3. Download from Google Drive
+    local_path = os.path.join(TMP_DIR, reel_name)
+    download_file_from_drive(drive_service, reel_id, local_path)
+    file_size_mb = os.path.getsize(local_path) / (1024 * 1024)
+    print(f"Downloaded reel size: {file_size_mb:.2f} MB")
+
+    # 4. Generate Caption
+    caption = generate_caption(reel_name)
+    print(f"\nGenerated Caption:\n---\n{caption}\n---")
+
+    # 5. Generate Thumbnail via FFmpeg
+    thumb_path = local_path + ".jpg"
+    print(f"Generating thumbnail at 00:00:01: {thumb_path}")
+    ffmpeg_bin = "ffmpeg"
+    subprocess.run([
+        ffmpeg_bin, "-y",
+        "-ss", "00:00:01",
+        "-i", local_path,
+        "-vframes", "1",
+        thumb_path
+    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # 6. Initialize Instagram Client
+    print("\nConnecting to Instagram...")
+    cl = init_instagram_client()
+
+    # Pre-upload human-like pause
+    pause_sec = random.randint(10, 18)
+    print(f"Simulating human pause ({pause_sec}s) before posting...")
+    time.sleep(pause_sec)
+
+    # 7. Upload Reel
+    print(f"Uploading Reel '{reel_name}' to Instagram...")
+    media = cl.clip_upload(
+        path=Path(local_path),
+        caption=caption,
+        thumbnail=Path(thumb_path) if os.path.exists(thumb_path) else None
+    )
+
+    insta_url = f"https://www.instagram.com/reel/{media.code}/"
+    print(f"\n🎉 REEL POSTED SUCCESSFULLY TO INSTAGRAM!")
+    print(f"Instagram Post URL: {insta_url}")
+    print(f"Media PK: {media.pk}")
+
+    # 8. Share to Story (if enabled)
+    if SHARE_TO_STORY:
+        story_delay = random.randint(6, 12)
+        print(f"\nWaiting {story_delay}s before sharing to Instagram Story...")
+        time.sleep(story_delay)
+        try:
+            print("Sharing Reel to Story...")
+            cl.media_share_to_story(media_id=str(media.id))
+            print("🎉 Successfully reshared Reel to Instagram Story!")
+        except Exception as e:
+            print(f"⚠️ Note: Story share failed/skipped (Reel upload is unaffected): {e}")
+
+    # 9. Move Reel to Uploaded_Archive in Google Drive
+    print(f"\nArchiving reel in Google Drive...")
+    move_drive_file(drive_service, reel_id)
+
+    # 10. Clean up temporary files
+    for p in (local_path, thumb_path):
+        try:
+            if os.path.exists(p):
+                os.remove(p)
+        except Exception:
+            pass
+
+    print(f"\n[{time.strftime('%Y-%m-%d %H:%M:%S')}] ✅ Cloud Pipeline Complete!")
+
+if __name__ == "__main__":
+    main()
