@@ -69,13 +69,21 @@ CAPTION_TEMPLATES = {
 
 PREME_HASHTAGS = "#preme #kickstreamer #streamer #twitchclips #irlstream #viralmoments #clipping #fyp #explorepage"
 
+PREME_CAPTIONS_POOL = [
+    "Wait till the end... This stream moment was wild 💀😭\n\nTag a friend who needs to see this! 👇\n\n{tags}",
+    "Nah Preme actually had zero filter on stream 💀😭 How did he say that?\n\nFollow for daily clips! 👇\n\n{tags}",
+    "Bro thought nobody was recording this 💀😭 Pure stream comedy.\n\nDrop a comment if you saw this live! 👇\n\n{tags}",
+    "Preme's reaction at the end was completely unhinged 💀😭 You can't make this up.\n\nTag that one friend 👇\n\n{tags}",
+    "The way he said that with a straight face 💀😭 Absolutely legendary stream moment.\n\nSave this for later! 👇\n\n{tags}",
+    "I was not expecting him to do that 💀😭 Caught in 4k on stream.\n\nShare this with someone who watches Preme! 👇\n\n{tags}",
+    "Streamers when the intrusive thoughts win 💀😭 Preme is unreal.\n\nFollow @coool_verse_ for more! 👇\n\n{tags}",
+    "This might be the most chaotic moment on Kick this week 💀😭 Watch till the end.\n\nDrop a 💀 in the comments! 👇\n\n{tags}",
+]
+
 def generate_caption(filename):
     if filename.startswith("preme_reel_"):
-        return (
-            "Wait till the end... This stream moment was wild 💀😭\n\n"
-            "Tag a friend who needs to see this! 👇\n\n"
-            f"{PREME_HASHTAGS}"
-        )
+        template = random.choice(PREME_CAPTIONS_POOL)
+        return template.format(tags=PREME_HASHTAGS)
 
     slug = ""
     m = re.match(r'reel_\d+_(.*?)\.mp4$', filename)
@@ -122,19 +130,47 @@ def fetch_pending_reels(drive_service):
     ).execute()
 
     files = results.get("files", [])
+    print(f"Total MP4 files discovered in Drive queue folder: {len(files)}")
     reels = []
     for item in files:
         name = item.get("name", "")
-        m = re.match(r'reel_(\d+)_.*\.mp4$', name)
-        if m:
+        if not name.endswith(".mp4"):
+            continue
+
+        m_meme = re.match(r'reel_(\d+)_.*\.mp4$', name)
+        m_preme = re.match(r'preme_reel_(\d+)\.mp4$', name)
+
+        if m_meme:
             reels.append({
                 "id": item.get("id"),
                 "name": name,
-                "num": int(m.group(1)),
-                "size": int(item.get("size", 0))
+                "num": int(m_meme.group(1)),
+                "size": int(item.get("size", 0)),
+                "createdTime": item.get("createdTime", "")
+            })
+        elif m_preme:
+            reels.append({
+                "id": item.get("id"),
+                "name": name,
+                "num": int(m_preme.group(1)),
+                "size": int(item.get("size", 0)),
+                "createdTime": item.get("createdTime", "")
+            })
+        else:
+            reels.append({
+                "id": item.get("id"),
+                "name": name,
+                "num": 999999,
+                "size": int(item.get("size", 0)),
+                "createdTime": item.get("createdTime", "")
             })
 
-    reels.sort(key=lambda x: x["num"])
+    # For Preme queue, sort FIFO by createdTime (oldest first); For memes, sort by numeric reel sequence
+    if GDRIVE_FOLDER_ID == "1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr" or (reels and reels[0]["name"].startswith("preme_reel_")):
+        reels.sort(key=lambda x: x.get("createdTime", ""))
+    else:
+        reels.sort(key=lambda x: (x["num"], x.get("createdTime", "")))
+
     return reels
 
 def download_file_from_drive(drive_service, file_id, destination_path):
@@ -214,7 +250,8 @@ def send_whatsapp_alert(reel_num, filename, insta_url, remaining_count=None):
     m = re.match(r'reel_\d+_(.*)', slug)
     topic = m.group(1).replace('_', ' ').title() if m else slug
 
-    msg = f"🎉 *Reel #{reel_num} Live on Instagram!*\n\n🎬 *Account:* @vformemes\n📌 *Topic:* {topic}\n🔗 *Link:* {insta_url}"
+    account_name = "@coool_verse_" if ("preme" in filename.lower() or GDRIVE_FOLDER_ID == "1NuU7Jc3zLVnd08UZh6U-2QrlWxOmEWXr") else "@vformemes"
+    msg = f"🎉 *Reel Live on Instagram!*\n\n🎬 *Account:* {account_name}\n📌 *Topic:* {topic}\n🔗 *Link:* {insta_url}"
     if remaining_count is not None:
         msg += f"\n📦 *Queue Remaining:* {remaining_count} reels"
 
