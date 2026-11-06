@@ -300,17 +300,19 @@ def main():
     caption = generate_caption(reel_name)
     print(f"\nGenerated Caption:\n---\n{caption}\n---")
 
-    # 5. Generate Thumbnail via FFmpeg
+    # 5. Generate Thumbnail (via FFmpeg if available, else Instagram auto-generates)
     thumb_path = local_path + ".jpg"
-    print(f"Generating thumbnail at 00:00:01: {thumb_path}")
-    ffmpeg_bin = "ffmpeg"
-    subprocess.run([
-        ffmpeg_bin, "-y",
-        "-ss", "00:00:01",
-        "-i", local_path,
-        "-vframes", "1",
-        thumb_path
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ffmpeg_bin = shutil.which("ffmpeg") or "ffmpeg"
+    try:
+        subprocess.run([
+            ffmpeg_bin, "-y",
+            "-ss", "00:00:01",
+            "-i", local_path,
+            "-vframes", "1",
+            thumb_path
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10)
+    except Exception as te:
+        print(f"ℹ️ Custom thumbnail skipped ({te}); Instagram will generate thumbnail from frame 1.")
 
     # 6. Initialize Instagram Client
     print("\nConnecting to Instagram...")

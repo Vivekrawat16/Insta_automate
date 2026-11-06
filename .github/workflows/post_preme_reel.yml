@@ -31,8 +31,10 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Verify FFmpeg
-        run: which ffmpeg || (sudo apt-get update -y && sudo apt-get install -y ffmpeg)
+      - name: Setup FFmpeg (Optional)
+        run: |
+          which ffmpeg || (sudo timeout 45 apt-get update -qq && sudo timeout 45 apt-get install -y --no-install-recommends ffmpeg) || true
+        continue-on-error: true
 
       - name: Install Python Dependencies
         run: |
