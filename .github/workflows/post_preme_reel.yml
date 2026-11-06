@@ -2,10 +2,11 @@ name: "Post Preme Campaign Reel"
 
 on:
   # Automated Schedule: Every 3 hours (8 reels per day)
-  # Times in UTC: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC
-  # (IST: 05:30, 08:30, 11:30, 14:30, 17:30, 20:30, 23:30, 02:30)
+  # Jittered at minute 10 to avoid GitHub Actions top-of-hour congestion
+  # Times in UTC: 00:10, 03:10, 06:10, 09:10, 12:10, 15:10, 18:10, 21:10 UTC
+  # (IST: 05:40, 08:40, 11:40, 14:40, 17:40, 20:40, 23:40, 02:40)
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: '10 */3 * * *'
 
   # Manual on-demand trigger via GitHub UI
   workflow_dispatch:
@@ -30,10 +31,8 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install System FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Verify FFmpeg
+        run: which ffmpeg || (sudo apt-get update -y && sudo apt-get install -y ffmpeg)
 
       - name: Install Python Dependencies
         run: |

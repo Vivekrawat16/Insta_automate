@@ -30,10 +30,8 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install System FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Verify FFmpeg
+        run: which ffmpeg || (sudo apt-get update -y && sudo apt-get install -y ffmpeg)
 
       - name: Install Python Dependencies
         run: |
