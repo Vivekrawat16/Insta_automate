@@ -21,6 +21,11 @@ import urllib.parse
 from pathlib import Path
 import requests
 
+# Ensure repository root is on sys.path
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 # Google Drive API
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
