@@ -14,6 +14,7 @@ import io
 import json
 import re
 import time
+import shutil
 import random
 import subprocess
 import urllib.parse
